@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from analytics import manufacturer_diff, metric_comparisons
+from analytics import manufacturer_diff, metric_comparisons, stock_position
 from database import Database
 from portal import parse_devexpress_data
 
@@ -40,7 +40,13 @@ class CoreTests(unittest.TestCase):
                         "state": "Gujarat",
                         "company_type": "Solar-Cells Manufacturer Only",
                         "row_hash": "old",
-                        "raw": {"AgencyName": "Alpha", "CellDCR": 1},
+                        "raw": {
+                            "AgencyName": "Alpha",
+                            "CellDCR": 1,
+                            "ModuleDCR": 3,
+                            "CellDCR1": 0.5,
+                            "ModuleDCR1": 1,
+                        },
                     }
                 ],
             )
@@ -62,7 +68,13 @@ class CoreTests(unittest.TestCase):
                         "state": "Gujarat",
                         "company_type": "Solar-Cells Manufacturer Only",
                         "row_hash": "new",
-                        "raw": {"AgencyName": "Alpha", "CellDCR": 2},
+                        "raw": {
+                            "AgencyName": "Alpha",
+                            "CellDCR": 2,
+                            "ModuleDCR": 4,
+                            "CellDCR1": 0.75,
+                            "ModuleDCR1": 1.5,
+                        },
                     },
                     {
                         "agency_id": "b",
@@ -70,7 +82,13 @@ class CoreTests(unittest.TestCase):
                         "state": "West Bengal",
                         "company_type": "Solar-Panels Manufacturer Only",
                         "row_hash": "new",
-                        "raw": {"AgencyName": "Beta"},
+                        "raw": {
+                            "AgencyName": "Beta",
+                            "CellDCR": 5,
+                            "ModuleDCR": 1,
+                            "CellDCR1": 0,
+                            "ModuleDCR1": 0.25,
+                        },
                     },
                 ],
             )
@@ -85,7 +103,14 @@ class CoreTests(unittest.TestCase):
             diff = manufacturer_diff(db, second)
             self.assertEqual(diff["counts"], {"current": 2, "added": 1, "removed": 0, "changed": 1})
 
+            stock = stock_position(db, second)
+            stock_metrics = {item["key"]: item for item in stock["metrics"]}
+            self.assertEqual(stock_metrics["cell_held"]["current"], 7)
+            self.assertEqual(stock_metrics["cell_held"]["previous"], 1)
+            self.assertEqual(stock_metrics["cell_held"]["delta"], 6)
+            self.assertEqual(stock_metrics["module_held"]["current"], 5)
+            self.assertEqual(stock["top_holders"]["cell_held"][0]["agency_name"], "Beta")
+
 
 if __name__ == "__main__":
     unittest.main()
-

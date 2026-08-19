@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from analytics import manufacturer_diff, metric_comparisons
+from analytics import manufacturer_diff, metric_comparisons, stock_position
 from database import Database
 from portal import METRICS
 
@@ -40,6 +40,7 @@ def summary_payload(db: Database) -> dict[str, Any]:
         "ready": True,
         "latest_run": latest_run,
         "metrics": metric_comparisons(db, run_id),
+        "stock_position": stock_position(db, run_id),
         "manufacturer_counts": db.manufacturer_count_by_type(run_id),
         "manufacturer_diff": diff["counts"],
         "manufacturer_count": len(db.manufacturer_snapshots(run_id)),
@@ -88,4 +89,3 @@ def all_payloads(db: Database) -> dict[str, dict[str, Any]]:
         "metrics": metrics_payload(db),
         "manufacturers": manufacturers_payload(db),
     }
-

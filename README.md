@@ -6,6 +6,7 @@ It collects:
 
 - Solar cells manufactured and sold by month from 2022 onward.
 - Solar modules manufactured and sold by month from 2022 onward.
+- Current DCR solar-cell and module stock held with manufacturers, including previous-snapshot changes and state/company leaders.
 - All manufacturer categories from the summary page, including cells-only, panels-only, and both cells-and-panels manufacturers.
 - Every manufacturer field returned by the portal. The dashboard shows the common fields in the table and exposes the complete raw record under **View profile**. The weekly email includes a complete CSV attachment.
 

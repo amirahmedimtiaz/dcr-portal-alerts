@@ -14,6 +14,23 @@ const SERIES_META = {
 
 const CATEGORY_COLORS = ["#248b68", "#d69a35", "#397f99", "#cf685d"];
 
+const STOCK_META = {
+  cell_held: {
+    icon: "SC",
+    title: "Solar cells held",
+    cardClass: "cell",
+    color: "#397f99",
+    unclaimedKey: "cell_unclaimed",
+  },
+  module_held: {
+    icon: "SM",
+    title: "Solar modules held",
+    cardClass: "module",
+    color: "#d69a35",
+    unclaimedKey: "module_unclaimed",
+  },
+};
+
 const FIELD_LABELS = {
   AgencyId: "Portal agency ID",
   AgencyName: "Company name",
@@ -59,6 +76,7 @@ const state = {
   manufacturerObservedAt: null,
   manufacturerSortKey: "agency_name",
   manufacturerSortDirection: 1,
+  stockView: "cell_held",
   chartRange: 24,
   page: 1,
   pageSize: 25,
@@ -223,6 +241,110 @@ function renderKpis() {
       $("#trends").scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+}
+
+function stockMetric(key) {
+  return (state.summary?.stock_position?.metrics || []).find((metric) => metric.key === key);
+}
+
+function stockChange(metric) {
+  if (metric?.delta === null || metric?.delta === undefined) {
+    return { className: "neutral", text: "No baseline" };
+  }
+  const delta = Number(metric.delta);
+  const arrow = delta > 0 ? "↗" : delta < 0 ? "↘" : "→";
+  return {
+    className: delta > 0 ? "positive" : delta < 0 ? "negative" : "neutral",
+    text: `${arrow} ${formatDelta(delta)}`,
+  };
+}
+
+function renderStockCards() {
+  const container = $("#stock-cards");
+  const heldMetrics = [stockMetric("cell_held"), stockMetric("module_held")].filter(Boolean);
+  if (!heldMetrics.length) {
+    container.innerHTML = '<div class="loading-card">No manufacturer stock snapshot is available yet.</div>';
+    return;
+  }
+  const combinedHeld = heldMetrics.reduce((sum, metric) => sum + Number(metric.current || 0), 0);
+  container.innerHTML = heldMetrics.map((metric) => {
+    const meta = STOCK_META[metric.key];
+    const unclaimed = stockMetric(meta.unclaimedKey);
+    const change = stockChange(metric);
+    const share = combinedHeld ? (Number(metric.current || 0) / combinedHeld) * 100 : 0;
+    const growth = metric.growth === null || metric.growth === undefined
+      ? "Previous snapshot unavailable"
+      : `${formatGrowth(metric.growth)} since previous snapshot`;
+    return `<article class="stock-card ${meta.cardClass}" style="--stock-color:${meta.color}">
+      <div class="stock-card-head">
+        <div class="stock-card-title">
+          <span class="stock-type-icon" aria-hidden="true">${meta.icon}</span>
+          <div><h3>${escapeHtml(meta.title)}</h3><p>Stock with manufacturers · current snapshot</p></div>
+        </div>
+        <span class="stock-change ${change.className}" title="${escapeHtml(growth)}">${escapeHtml(change.text)}</span>
+      </div>
+      <div class="stock-card-value">${formatNumber(metric.current)}<small>MW</small></div>
+      <div class="stock-card-footer">
+        <div>
+          <div class="stock-share-label"><span>Share of combined held stock</span><strong>${share.toFixed(1)}%</strong></div>
+          <div class="stock-share-track"><span style="width:${share.toFixed(2)}%"></span></div>
+        </div>
+        <div class="stock-unclaimed"><span>Sold · buyer unclaimed</span><strong>${formatNumber(unclaimed?.current)} MW</strong></div>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function rankingItemMarkup(item, index, maximum, color, isHolder = false) {
+  const value = Number(item.value || 0);
+  const width = maximum > 0 ? Math.max(2, (value / maximum) * 100) : 0;
+  const name = item.agency_name || item.state || "Unknown";
+  const subtitle = isHolder ? (item.state || "State unavailable") : `${formatNumber(value)} MW held`;
+  const content = `<span class="stock-ranking-item">
+    <span class="stock-rank">${index + 1}</span>
+    <span class="stock-ranking-copy">
+      <span class="stock-ranking-name">${escapeHtml(name)}</span>
+      <span class="stock-ranking-subtitle">${escapeHtml(subtitle)}</span>
+      <span class="stock-ranking-bar"><span style="width:${width.toFixed(2)}%;--ranking-color:${color}"></span></span>
+    </span>
+    <strong class="stock-ranking-value">${formatNumber(value)}</strong>
+  </span>`;
+  if (!isHolder) return `<li>${content}</li>`;
+  return `<li><button class="stock-holder-button" type="button" data-stock-holder="${escapeHtml(item.agency_id)}" aria-label="Open ${escapeHtml(name)} manufacturer profile">${content}</button></li>`;
+}
+
+function renderStockRanking() {
+  const stock = state.summary?.stock_position;
+  if (!stock) return;
+  const key = state.stockView;
+  const meta = STOCK_META[key];
+  $$("[data-stock-key]").forEach((button) => {
+    const active = button.dataset.stockKey === key;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  const states = (stock.states || [])
+    .map((item) => ({ state: item.state, value: Number(item[key] || 0) }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
+  const holders = stock.top_holders?.[key] || [];
+  const stateMaximum = Number(states[0]?.value || 0);
+  const holderMaximum = Number(holders[0]?.value || 0);
+  $("#stock-state-ranking").innerHTML = states.length
+    ? states.map((item, index) => rankingItemMarkup(item, index, stateMaximum, meta.color)).join("")
+    : '<li class="loading-card">No state stock totals available.</li>';
+  $("#stock-holder-ranking").innerHTML = holders.length
+    ? holders.map((item, index) => rankingItemMarkup(item, index, holderMaximum, meta.color, true)).join("")
+    : '<li class="loading-card">No manufacturer stock totals available.</li>';
+  $("#stock-holder-ranking").querySelectorAll("[data-stock-holder]").forEach((button) => {
+    button.addEventListener("click", () => openDetails(state.manufacturerById.get(button.dataset.stockHolder)));
+  });
+}
+
+function renderStockPosition() {
+  renderStockCards();
+  renderStockRanking();
 }
 
 function renderMetricControls() {
@@ -656,6 +778,7 @@ async function loadDashboard() {
     status.innerHTML = `<span class="status-dot"></span>${runDate ? `Updated ${escapeHtml(formatTimestamp(runDate))}` : "Awaiting first snapshot"}`;
     renderSnapshot();
     renderKpis();
+    renderStockPosition();
     renderMetricControls();
     renderChart();
     renderChanges();
@@ -667,6 +790,7 @@ async function loadDashboard() {
     status.innerHTML = '<span class="status-dot"></span>Data unavailable';
     status.classList.add("error");
     $("#kpi-grid").innerHTML = `<div class="loading-card">The published data could not be loaded. ${escapeHtml(error.message)}</div>`;
+    $("#stock-cards").innerHTML = '<div class="loading-card">The stock snapshot could not be loaded.</div>';
     console.error(error);
   } finally {
     refresh.disabled = false;
@@ -680,6 +804,12 @@ function bindEvents() {
     applyTheme(next);
     try { localStorage.setItem("dcr-theme", next); } catch (_) { /* Local preferences are optional. */ }
     renderChart();
+  });
+  $$("[data-stock-key]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.stockView = button.dataset.stockKey;
+      renderStockRanking();
+    });
   });
   $$("[data-range]").forEach((button) => {
     button.addEventListener("click", () => {

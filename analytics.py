@@ -8,10 +8,35 @@ from database import Database
 from portal import METRICS
 
 
+STOCK_FIELDS: tuple[tuple[str, str, str, str], ...] = (
+    ("cell_held", "CellDCR", "Solar cells held", "Stock With Manufacturer (MW)"),
+    ("module_held", "ModuleDCR", "Solar modules held", "Stock With Manufacturer (MW)"),
+    (
+        "cell_unclaimed",
+        "CellDCR1",
+        "Solar cells sold · buyer unclaimed",
+        "Sold By Manufacturer Un-Claimed (MW)",
+    ),
+    (
+        "module_unclaimed",
+        "ModuleDCR1",
+        "Solar modules sold · buyer unclaimed",
+        "Sold By Manufacturer Un-Claimed (MW)",
+    ),
+)
+
+
 def _growth(current: float | None, baseline: float | None) -> float | None:
     if current is None or baseline is None or abs(baseline) < 0.0000000001:
         return None
     return (current - baseline) / baseline
+
+
+def _raw_float(raw: dict[str, Any], field: str) -> float:
+    try:
+        return float(raw.get(field) or 0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def metric_comparisons(db: Database, run_id: int | None = None) -> list[dict[str, Any]]:
@@ -91,6 +116,95 @@ def metric_comparisons(db: Database, run_id: int | None = None) -> list[dict[str
     return output
 
 
+def _snapshot_stock_totals(
+    snapshots: dict[str, dict[str, Any]],
+) -> dict[str, float]:
+    totals = {key: 0.0 for key, _field, _label, _source_label in STOCK_FIELDS}
+    for item in snapshots.values():
+        raw = item.get("raw", {})
+        for key, field, _label, _source_label in STOCK_FIELDS:
+            totals[key] += _raw_float(raw, field)
+    return totals
+
+
+def stock_position(db: Database, run_id: int | None = None) -> dict[str, Any]:
+    """Aggregate the portal's manufacturer-held and unclaimed DCR stock fields."""
+
+    current_run = db.latest_successful_run() if run_id is None else {"id": run_id}
+    if current_run is None:
+        return {"unit": "MW", "metrics": [], "states": [], "top_holders": {}}
+    current_run_id = int(current_run["id"])
+    previous_run = db.latest_successful_run(before_id=current_run_id)
+    current = db.manufacturer_snapshots(current_run_id)
+    previous = (
+        db.manufacturer_snapshots(int(previous_run["id"])) if previous_run else {}
+    )
+    current_totals = _snapshot_stock_totals(current)
+    previous_totals = _snapshot_stock_totals(previous) if previous_run else {}
+
+    metrics: list[dict[str, Any]] = []
+    for key, field, label, source_label in STOCK_FIELDS:
+        current_value = current_totals[key]
+        previous_value = previous_totals.get(key) if previous_run else None
+        metrics.append(
+            {
+                "key": key,
+                "field": field,
+                "label": label,
+                "source_label": source_label,
+                "current": current_value,
+                "previous": previous_value,
+                "delta": current_value - previous_value
+                if previous_value is not None
+                else None,
+                "growth": _growth(current_value, previous_value),
+            }
+        )
+
+    states: dict[str, dict[str, Any]] = {}
+    for item in current.values():
+        state = str(item.get("state") or item.get("raw", {}).get("State") or "Unknown")
+        entry = states.setdefault(
+            state,
+            {
+                "state": state,
+                "cell_held": 0.0,
+                "module_held": 0.0,
+                "cell_unclaimed": 0.0,
+                "module_unclaimed": 0.0,
+            },
+        )
+        raw = item.get("raw", {})
+        for key, field, _label, _source_label in STOCK_FIELDS:
+            entry[key] += _raw_float(raw, field)
+
+    top_holders: dict[str, list[dict[str, Any]]] = {}
+    for key, field, _label, _source_label in STOCK_FIELDS[:2]:
+        ranked = sorted(
+            current.values(),
+            key=lambda item: _raw_float(item.get("raw", {}), field),
+            reverse=True,
+        )[:5]
+        top_holders[key] = [
+            {
+                "agency_id": item.get("agency_id"),
+                "agency_name": item.get("agency_name")
+                or item.get("raw", {}).get("AgencyName"),
+                "state": item.get("state") or item.get("raw", {}).get("State"),
+                "value": _raw_float(item.get("raw", {}), field),
+            }
+            for item in ranked
+        ]
+
+    return {
+        "unit": "MW",
+        "scope": "Stock With Manufacturer (MW)",
+        "metrics": metrics,
+        "states": sorted(states.values(), key=lambda item: item["state"]),
+        "top_holders": top_holders,
+    }
+
+
 def manufacturer_diff(
     db: Database,
     current_run_id: int | None = None,
@@ -145,4 +259,3 @@ def manufacturer_diff(
             "changed": len(changed),
         },
     }
-

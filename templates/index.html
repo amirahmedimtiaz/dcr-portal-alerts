@@ -19,6 +19,7 @@
       </a>
       <nav class="primary-nav" aria-label="Dashboard sections">
         <a href="#overview">Overview</a>
+        <a href="#stock">Stock</a>
         <a href="#trends">Trends</a>
         <a href="#manufacturers">Manufacturers</a>
         <a href="#definitions">Definitions</a>
@@ -84,6 +85,55 @@
       </div>
       <div class="kpi-grid" id="kpi-grid" aria-live="polite">
         <div class="loading-card">Loading the latest portal snapshot…</div>
+      </div>
+    </section>
+
+    <section class="stock-section" id="stock" aria-labelledby="stock-heading">
+      <div class="section-heading inline-heading">
+        <div>
+          <p class="section-kicker">Current DCR inventory</p>
+          <h2 id="stock-heading">Stock held with manufacturers</h2>
+        </div>
+        <p class="section-note">Current portal inventory in MW, aggregated across every manufacturer record and compared with the previous snapshot.</p>
+      </div>
+
+      <div class="stock-card-grid" id="stock-cards" aria-live="polite">
+        <div class="loading-card">Loading cell and module stock…</div>
+      </div>
+
+      <article class="panel stock-ranking-panel">
+        <div class="panel-heading stock-ranking-heading">
+          <div>
+            <p class="section-kicker">Where stock is held</p>
+            <h2>Inventory leaders</h2>
+            <p class="panel-description">Switch between cells and modules to see the largest state totals and company holdings.</p>
+          </div>
+          <div class="stock-toggle" aria-label="Stock ranking metric">
+            <button type="button" class="active" data-stock-key="cell_held" aria-pressed="true"><span class="stock-toggle-dot cell"></span>Cells</button>
+            <button type="button" data-stock-key="module_held" aria-pressed="false"><span class="stock-toggle-dot module"></span>Modules</button>
+          </div>
+        </div>
+        <div class="stock-ranking-grid">
+          <section aria-labelledby="state-stock-heading">
+            <div class="ranking-title-row">
+              <h3 id="state-stock-heading">Top states</h3>
+              <span>MW held</span>
+            </div>
+            <ol class="stock-ranking-list" id="stock-state-ranking"></ol>
+          </section>
+          <section aria-labelledby="holder-stock-heading">
+            <div class="ranking-title-row">
+              <h3 id="holder-stock-heading">Top manufacturers</h3>
+              <span>Open a profile for details</span>
+            </div>
+            <ol class="stock-ranking-list holder-list" id="stock-holder-ranking"></ol>
+          </section>
+        </div>
+      </article>
+
+      <div class="stock-method-note">
+        <span aria-hidden="true">i</span>
+        <p>The NISE portal labels these fields <strong>“Stock With Manufacturer (MW)”</strong>. Sold-but-unclaimed inventory is shown as context and is not added to stock currently held. <a href="https://solardcrportal.nise.res.in/Summary/index" target="_blank" rel="noreferrer">Open the source summary ↗</a></p>
       </div>
     </section>
 
@@ -242,7 +292,7 @@
         </details>
         <details>
           <summary><span>Stock with manufacturer</span><span aria-hidden="true">+</span></summary>
-          <p>Portal-tracked DCR cell or module stock currently held by a manufacturer. It is inventory, not the factory’s nameplate annual capacity.</p>
+          <p>The manufacturer’s portal balance: cell power available for sale or module conversion, and completed modules remaining in stock. It is inventory, not nameplate annual capacity.</p>
         </details>
         <details>
           <summary><span>Sold · buyer unclaimed</span><span aria-hidden="true">+</span></summary>
@@ -263,7 +313,7 @@
       </div>
       <div class="source-note">
         <span class="source-note-mark" aria-hidden="true">i</span>
-        <p><strong>Source note.</strong> This independent monitor republishes public summary data. For compliance decisions, verify the latest record directly on the <a href="https://solardcrportal.nise.res.in/Summary/index" target="_blank" rel="noreferrer">NISE DCR Verification Portal ↗</a>.</p>
+        <p><strong>Source note.</strong> This independent monitor republishes public summary data. Review the <a href="https://solardcrportal.nise.res.in/assets/images/DCR%20Verification%20Portal.pdf" target="_blank" rel="noreferrer">official portal manual ↗</a> for workflow definitions, and verify compliance decisions directly on the <a href="https://solardcrportal.nise.res.in/Summary/index" target="_blank" rel="noreferrer">NISE DCR Verification Portal ↗</a>.</p>
       </div>
     </section>
   </main>
