@@ -1,0 +1,101 @@
+# Solar DCR Portal alerts
+
+This project keeps a history of the public NISE Solar DCR Portal summary data, publishes a fast static dashboard on GitHub Pages, and sends a Gmail digest every Saturday at 09:00 JST through GitHub Actions.
+
+It collects:
+
+- Solar cells manufactured and sold by month from 2022 onward.
+- Solar modules manufactured and sold by month from 2022 onward.
+- All manufacturer categories from the summary page, including cells-only, panels-only, and both cells-and-panels manufacturers.
+- Every manufacturer field returned by the portal. The dashboard shows the common fields in the table and exposes the complete raw record under **View all**. The weekly email includes a complete CSV attachment.
+
+## Setup
+
+```bash
+cd /Users/amirahmedimtiaz/dcr-portal-alerts
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Edit `.env` and set:
+
+```text
+EMAIL_SENDER=your-gmail-address@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+EMAIL_RECEIVER=your-gmail-address@gmail.com
+```
+
+For Gmail, enable two-step verification and create an App Password. Do not put your normal Gmail password in `.env` or commit `.env`.
+
+## First run
+
+The first run automatically performs the 2022-to-current-year historical backfill and creates the baseline without sending an email:
+
+```bash
+python run.py
+```
+
+To test the scraper without Gmail configured:
+
+```bash
+python run.py --no-email
+```
+
+For local testing, the database is stored in `portal.db`. GitHub Actions uses `data/portal.db` so the historical state survives between scheduled runs.
+
+## Local dashboard preview
+
+In another terminal, with the virtual environment active:
+
+```bash
+python app.py
+```
+
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000). This is only a local preview; the deployed dashboard is static and does not require Flask to be running.
+
+In the manufacturer table, click **Cell capacity / DCR (MW)** or **Module capacity / DCR (MW)** to sort. Click again to reverse ascending/descending order. The full portal record remains available under **View all**.
+
+## GitHub Pages deployment and automatic schedule
+
+The repository contains `.github/workflows/update-and-deploy.yml`. It runs at `00:00 UTC` every Saturday, which is `09:00 JST`, and also supports manual runs from the Actions tab. Each run:
+
+- scrapes the current year and refreshes the manufacturer register;
+- sends the Gmail digest;
+- commits the updated `data/portal.db` state; and
+- publishes the static dashboard.
+
+This workspace does not have a GitHub remote yet. Create an empty repository, then push this directory:
+
+```bash
+git init -b main
+git add .
+git commit -m "Add Solar DCR monitoring dashboard"
+git remote add origin https://github.com/<your-account>/<your-repository>.git
+git push -u origin main
+```
+
+In the repository’s **Settings → Secrets and variables → Actions**, add these repository secrets:
+
+```text
+EMAIL_SENDER
+EMAIL_PASSWORD
+EMAIL_RECEIVER
+```
+
+Use the Gmail App Password for `EMAIL_PASSWORD`. Do not commit `.env` or copy its contents into the repository. Under **Settings → Pages**, choose **GitHub Actions** as the publishing source, then run **Update and deploy Solar DCR dashboard** manually once from the Actions tab. The live URL will be:
+
+```text
+https://<your-account>.github.io/<your-repository>/
+```
+
+Bookmark that URL; it will work without the local Flask server. GitHub’s custom Pages workflow uses the Pages artifact and deployment actions included here. 
+
+## Weekly comparison behavior
+
+The portal returns all twelve months for a selected year, with future/unpublished months represented as zero. The runner uses the latest month with a non-zero value for each of the four series.
+
+- If the latest month is unchanged, the email reports a like-for-like week-on-week MW change and growth rate.
+- If a new month becomes the latest published month, the email labels the comparison as **Latest month changed** and shows the previous latest month for context.
+- The manufacturer list is compared by company ID. Added, removed, and changed records are reported, and the complete current register is attached as CSV.

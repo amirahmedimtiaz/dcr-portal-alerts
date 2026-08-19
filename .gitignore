@@ -1,0 +1,14 @@
+.env
+portal.db
+portal.db-shm
+portal.db-wal
+site/
+scraper.log
+!data/
+!data/portal.db
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.DS_Store

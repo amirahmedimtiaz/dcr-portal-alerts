@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c2631">
+  <title>Solar DCR Portal Trends</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">NISE · Solar DCR Portal</p>
+        <h1>Manufacturing &amp; sales monitor</h1>
+        <p class="subhead">Monthly production history, latest-month changes, and the complete manufacturer register.</p>
+      </div>
+      <div class="topbar-actions">
+        <span class="status-pill" id="last-updated"><span class="status-dot"></span>Loading data…</span>
+        <button class="button ghost" id="refresh-button" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-grid" id="kpi-grid" aria-live="polite">
+        <div class="loading-card">Run the scraper to populate the dashboard.</div>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">History from 2022</p>
+            <h2>Manufactured and sold</h2>
+          </div>
+          <div class="chart-controls" id="metric-controls" aria-label="Chart series"></div>
+        </div>
+        <div class="chart-wrap">
+          <svg id="trend-chart" role="img" aria-label="Monthly manufacturing and sales trend chart" viewBox="0 0 1000 380" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+        </div>
+        <div class="chart-legend" id="chart-legend"></div>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel change-panel">
+          <div class="panel-heading compact">
+            <div>
+              <p class="eyebrow">Weekly snapshot</p>
+              <h2>What changed</h2>
+            </div>
+          </div>
+          <div id="change-summary" class="change-summary"></div>
+          <div class="run-meta" id="run-meta"></div>
+        </div>
+
+        <div class="panel category-panel">
+          <div class="panel-heading compact">
+            <div>
+              <p class="eyebrow">Current register</p>
+              <h2>Manufacturer categories</h2>
+            </div>
+          </div>
+          <div id="category-summary" class="category-summary"></div>
+        </div>
+      </section>
+
+      <section class="panel manufacturers-panel">
+        <div class="panel-heading manufacturer-heading">
+          <div>
+            <p class="eyebrow">All manufacturer types</p>
+            <h2>Manufacturer register</h2>
+            <p class="muted" id="manufacturer-count">Loading…</p>
+          </div>
+          <div class="filters">
+            <label>
+              <span>Search</span>
+              <input id="manufacturer-search" type="search" placeholder="Company, email, state…" autocomplete="off">
+            </label>
+            <label>
+              <span>Category</span>
+              <select id="manufacturer-category"><option value="">All categories</option></select>
+            </label>
+            <label>
+              <span>State</span>
+              <select id="manufacturer-state"><option value="">All states</option></select>
+            </label>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>State</th>
+                <th>Category</th>
+                <th>Email</th>
+                <th class="numeric"><button class="sort-button" data-sort-key="CellDCR" type="button">Cell capacity / DCR (MW) <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th class="numeric"><button class="sort-button" data-sort-key="ModuleDCR" type="button">Module capacity / DCR (MW) <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="manufacturer-table"><tr><td colspan="7" class="empty-cell">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span id="manufacturer-visible-count"></span>
+          <span class="muted">Every portal field is available under Details.</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Local dashboard · data stored in SQLite</span>
+      <a href="https://solardcrportal.nise.res.in/Summary/index" target="_blank" rel="noreferrer">Open source portal ↗</a>
+    </footer>
+  </div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
