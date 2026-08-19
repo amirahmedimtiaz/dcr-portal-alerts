@@ -3,117 +3,310 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0c2631">
-  <title>Solar DCR Portal Trends</title>
+  <meta name="theme-color" content="#0b1f29">
+  <meta name="description" content="Weekly Solar DCR manufacturing, sales, stock, and manufacturer intelligence from the NISE portal.">
+  <title>DCR Watch · India Solar Intelligence</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">NISE · Solar DCR Portal</p>
-        <h1>Manufacturing &amp; sales monitor</h1>
-        <p class="subhead">Monthly production history, latest-month changes, and the complete manufacturer register.</p>
-      </div>
-      <div class="topbar-actions">
-        <span class="status-pill" id="last-updated"><span class="status-dot"></span>Loading data…</span>
-        <button class="button ghost" id="refresh-button" type="button">Refresh</button>
-      </div>
-    </header>
+  <a class="skip-link" href="#main-content">Skip to dashboard</a>
 
-    <main>
-      <section class="hero-grid" id="kpi-grid" aria-live="polite">
-        <div class="loading-card">Run the scraper to populate the dashboard.</div>
-      </section>
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="#overview" aria-label="DCR Watch home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-copy">DCR Watch<small>India solar intelligence</small></span>
+      </a>
+      <nav class="primary-nav" aria-label="Dashboard sections">
+        <a href="#overview">Overview</a>
+        <a href="#trends">Trends</a>
+        <a href="#manufacturers">Manufacturers</a>
+        <a href="#definitions">Definitions</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to dark theme" title="Change theme">
+          <span class="theme-icon" aria-hidden="true">◐</span>
+        </button>
+        <a class="source-link" href="https://solardcrportal.nise.res.in/Summary/index" target="_blank" rel="noreferrer">NISE source <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </header>
 
-      <section class="panel chart-panel">
-        <div class="panel-heading">
+  <main id="main-content" class="shell">
+    <section class="hero" id="overview">
+      <div class="hero-copy">
+        <div class="live-label"><span class="pulse-dot"></span> Weekly public-data monitor</div>
+        <h1>Domestic solar,<br><span>clearly tracked.</span></h1>
+        <p class="hero-intro">Follow India’s DCR solar-cell and module manufacturing, sales, stock, and registered manufacturers in one focused view.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#trends">Explore monthly trends <span aria-hidden="true">↓</span></a>
+          <a class="button secondary" href="#manufacturers">Browse manufacturers</a>
+        </div>
+      </div>
+
+      <aside class="snapshot-card" aria-label="Latest data snapshot">
+        <div class="snapshot-head">
           <div>
-            <p class="eyebrow">History from 2022</p>
-            <h2>Manufactured and sold</h2>
+            <p class="section-kicker">Latest snapshot</p>
+            <h2>Portal coverage</h2>
           </div>
-          <div class="chart-controls" id="metric-controls" aria-label="Chart series"></div>
+          <span class="data-status" id="last-updated"><span class="status-dot"></span>Loading…</span>
         </div>
-        <div class="chart-wrap">
-          <svg id="trend-chart" role="img" aria-label="Monthly manufacturing and sales trend chart" viewBox="0 0 1000 380" preserveAspectRatio="none"></svg>
-          <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+        <div class="snapshot-grid">
+          <div class="snapshot-stat">
+            <span class="snapshot-value" id="snapshot-manufacturers">—</span>
+            <span class="snapshot-label">Manufacturers</span>
+          </div>
+          <div class="snapshot-stat">
+            <span class="snapshot-value" id="snapshot-states">—</span>
+            <span class="snapshot-label">States covered</span>
+          </div>
+          <div class="snapshot-stat">
+            <span class="snapshot-value" id="snapshot-observations">—</span>
+            <span class="snapshot-label">Monthly observations</span>
+          </div>
+          <div class="snapshot-stat accent">
+            <span class="snapshot-value">Sat</span>
+            <span class="snapshot-label">09:00 JST refresh</span>
+          </div>
         </div>
+        <button class="refresh-link" id="refresh-button" type="button"><span aria-hidden="true">↻</span> Reload published data</button>
+      </aside>
+    </section>
+
+    <section class="kpi-section" aria-labelledby="latest-heading">
+      <div class="section-heading inline-heading">
+        <div>
+          <p class="section-kicker">Latest non-zero month</p>
+          <h2 id="latest-heading">Production and sales pulse</h2>
+        </div>
+        <p class="section-note">Changes compare the same latest month between weekly portal snapshots.</p>
+      </div>
+      <div class="kpi-grid" id="kpi-grid" aria-live="polite">
+        <div class="loading-card">Loading the latest portal snapshot…</div>
+      </div>
+    </section>
+
+    <section class="panel trend-panel" id="trends" aria-labelledby="trend-heading">
+      <div class="panel-heading trend-heading">
+        <div>
+          <p class="section-kicker">Monthly history · 2022 onward</p>
+          <h2 id="trend-heading">Manufactured and sold</h2>
+          <p class="panel-description">Select series and move across the chart to compare every metric for a month.</p>
+        </div>
+        <div class="range-control" aria-label="Chart date range">
+          <button type="button" data-range="12">12M</button>
+          <button type="button" data-range="24" class="active">24M</button>
+          <button type="button" data-range="all">All</button>
+        </div>
+      </div>
+      <div class="metric-controls" id="metric-controls" aria-label="Chart series"></div>
+      <div class="chart-wrap" id="chart-wrap">
+        <svg id="trend-chart" role="img" aria-label="Monthly solar cell and module manufacturing and sales chart" viewBox="0 0 1000 430" preserveAspectRatio="none"></svg>
+        <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+      </div>
+      <div class="chart-footer">
         <div class="chart-legend" id="chart-legend"></div>
-      </section>
+        <span class="chart-unit">Values in MW</span>
+      </div>
+    </section>
 
-      <section class="content-grid">
-        <div class="panel change-panel">
-          <div class="panel-heading compact">
-            <div>
-              <p class="eyebrow">Weekly snapshot</p>
-              <h2>What changed</h2>
-            </div>
+    <section class="insight-grid" aria-label="Weekly and manufacturer insights">
+      <article class="panel change-panel">
+        <div class="panel-heading compact">
+          <div>
+            <p class="section-kicker">Weekly comparison</p>
+            <h2>What changed</h2>
           </div>
-          <div id="change-summary" class="change-summary"></div>
-          <div class="run-meta" id="run-meta"></div>
+          <span class="panel-badge">WoW</span>
         </div>
+        <div id="change-summary" class="change-summary"></div>
+        <div class="run-meta" id="run-meta"></div>
+      </article>
 
-        <div class="panel category-panel">
-          <div class="panel-heading compact">
-            <div>
-              <p class="eyebrow">Current register</p>
-              <h2>Manufacturer categories</h2>
-            </div>
+      <article class="panel category-panel">
+        <div class="panel-heading compact">
+          <div>
+            <p class="section-kicker">Registered companies</p>
+            <h2>Manufacturer mix</h2>
+          </div>
+          <span class="panel-badge" id="manufacturer-total-badge">— total</span>
+        </div>
+        <div class="mix-layout">
+          <div class="mix-ring" id="mix-ring" role="img" aria-label="Manufacturer category distribution">
+            <div><strong id="mix-total">—</strong><span>companies</span></div>
           </div>
           <div id="category-summary" class="category-summary"></div>
         </div>
-      </section>
+      </article>
+    </section>
 
-      <section class="panel manufacturers-panel">
-        <div class="panel-heading manufacturer-heading">
-          <div>
-            <p class="eyebrow">All manufacturer types</p>
-            <h2>Manufacturer register</h2>
-            <p class="muted" id="manufacturer-count">Loading…</p>
-          </div>
-          <div class="filters">
-            <label>
-              <span>Search</span>
-              <input id="manufacturer-search" type="search" placeholder="Company, email, state…" autocomplete="off">
-            </label>
-            <label>
-              <span>Category</span>
-              <select id="manufacturer-category"><option value="">All categories</option></select>
-            </label>
-            <label>
-              <span>State</span>
-              <select id="manufacturer-state"><option value="">All states</option></select>
-            </label>
-          </div>
+    <section class="manufacturer-section" id="manufacturers" aria-labelledby="manufacturer-heading">
+      <div class="section-heading manufacturer-title-row">
+        <div>
+          <p class="section-kicker">Complete public register</p>
+          <h2 id="manufacturer-heading">Explore manufacturers</h2>
+          <p class="panel-description" id="manufacturer-count">Loading manufacturer records…</p>
         </div>
+        <button class="button export-button" id="export-csv" type="button"><span aria-hidden="true">⇩</span> Export filtered CSV</button>
+      </div>
+
+      <div class="manufacturer-stat-grid" id="manufacturer-stats" aria-label="Manufacturer stock summary"></div>
+
+      <div class="panel manufacturer-panel">
+        <div class="filter-bar">
+          <label class="search-field">
+            <span class="sr-only">Search manufacturers</span>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input id="manufacturer-search" type="search" placeholder="Search company, state, email…" autocomplete="off">
+            <button id="clear-search" type="button" aria-label="Clear search" hidden>×</button>
+          </label>
+          <label class="select-field">
+            <span>Category</span>
+            <select id="manufacturer-category"><option value="">All categories</option></select>
+          </label>
+          <label class="select-field">
+            <span>State</span>
+            <select id="manufacturer-state"><option value="">All states</option></select>
+          </label>
+          <label class="select-field sort-select-field">
+            <span>Sort</span>
+            <select id="manufacturer-sort">
+              <option value="agency_name:1">Company A–Z</option>
+              <option value="CellDCR:-1">Cell stock · highest</option>
+              <option value="ModuleDCR:-1">Module stock · highest</option>
+              <option value="State:1">State A–Z</option>
+            </select>
+          </label>
+          <button class="reset-button" id="reset-filters" type="button">Reset</button>
+        </div>
+
+        <div class="active-filter-summary" id="active-filter-summary" aria-live="polite"></div>
+
         <div class="table-scroll">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Company</th>
-                <th>State</th>
-                <th>Category</th>
-                <th>Email</th>
-                <th class="numeric"><button class="sort-button" data-sort-key="CellDCR" type="button">Cell capacity / DCR (MW) <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th class="numeric"><button class="sort-button" data-sort-key="ModuleDCR" type="button">Module capacity / DCR (MW) <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
-                <th>Details</th>
+                <th><button class="sort-button" data-sort-key="agency_name" type="button">Company <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th><button class="sort-button" data-sort-key="State" type="button">State <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th><button class="sort-button" data-sort-key="CompanyType" type="button">Category <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th class="numeric"><button class="sort-button" data-sort-key="CellDCR" type="button">DCR cell stock <span class="header-unit">MW</span> <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th class="numeric"><button class="sort-button" data-sort-key="ModuleDCR" type="button">DCR module stock <span class="header-unit">MW</span> <span class="sort-indicator" aria-hidden="true">↕</span></button></th>
+                <th><span class="sr-only">Open details</span></th>
               </tr>
             </thead>
-            <tbody id="manufacturer-table"><tr><td colspan="7" class="empty-cell">Loading…</td></tr></tbody>
+            <tbody id="manufacturer-table"><tr><td colspan="6" class="empty-cell">Loading…</td></tr></tbody>
           </table>
         </div>
-        <div class="table-footer">
-          <span id="manufacturer-visible-count"></span>
-          <span class="muted">Every portal field is available under Details.</span>
-        </div>
-      </section>
-    </main>
 
-    <footer>
-      <span>Local dashboard · data stored in SQLite</span>
-      <a href="https://solardcrportal.nise.res.in/Summary/index" target="_blank" rel="noreferrer">Open source portal ↗</a>
-    </footer>
-  </div>
+        <div class="table-footer">
+          <div class="page-size-control">
+            <span>Rows</span>
+            <select id="page-size" aria-label="Rows per page">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <span id="manufacturer-visible-count"></span>
+          <div class="pagination" aria-label="Manufacturer pages">
+            <button id="previous-page" type="button" aria-label="Previous page">←</button>
+            <span id="page-indicator">Page 1</span>
+            <button id="next-page" type="button" aria-label="Next page">→</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="definitions-section" id="definitions" aria-labelledby="definitions-heading">
+      <div class="section-heading definitions-heading">
+        <div>
+          <p class="section-kicker">Read the data correctly</p>
+          <h2 id="definitions-heading">DCR metric guide</h2>
+        </div>
+        <p class="section-note">Definitions follow the terminology used by the NISE portal and its official user manual.</p>
+      </div>
+      <div class="definition-grid">
+        <details open>
+          <summary><span>DCR</span><span aria-hidden="true">+</span></summary>
+          <p>Domestic Content Requirement. The portal traces domestically manufactured solar cells and modules used in applicable government-supported schemes.</p>
+        </details>
+        <details>
+          <summary><span>Manufactured</span><span aria-hidden="true">+</span></summary>
+          <p>The aggregate rated power of solar cells or modules recorded by the portal as manufactured during the selected calendar month.</p>
+        </details>
+        <details>
+          <summary><span>Sold</span><span aria-hidden="true">+</span></summary>
+          <p>The aggregate rated power of solar cells or modules recorded by the portal as sold during the selected month. It is a power quantity, not sales revenue.</p>
+        </details>
+        <details>
+          <summary><span>Stock with manufacturer</span><span aria-hidden="true">+</span></summary>
+          <p>Portal-tracked DCR cell or module stock currently held by a manufacturer. It is inventory, not the factory’s nameplate annual capacity.</p>
+        </details>
+        <details>
+          <summary><span>Sold · buyer unclaimed</span><span aria-hidden="true">+</span></summary>
+          <p>Portal-tracked DCR stock recorded as sold by the manufacturer that the buyer has not yet claimed or credited.</p>
+        </details>
+        <details>
+          <summary><span>MW</span><span aria-hidden="true">+</span></summary>
+          <p>Aggregate rated power of the tracked cells or modules in megawatts. It is not a count of physical pieces.</p>
+        </details>
+        <details>
+          <summary><span>Weekly change</span><span aria-hidden="true">+</span></summary>
+          <p>The difference between consecutive weekly snapshots for a metric’s latest non-zero month. Growth rate is that difference divided by the earlier snapshot value.</p>
+        </details>
+        <details>
+          <summary><span>Manufacturer categories</span><span aria-hidden="true">+</span></summary>
+          <p>The portal classifies registrations as cells only, panels/modules only, or both. The category does not by itself state factory capacity or current stock.</p>
+        </details>
+      </div>
+      <div class="source-note">
+        <span class="source-note-mark" aria-hidden="true">i</span>
+        <p><strong>Source note.</strong> This independent monitor republishes public summary data. For compliance decisions, verify the latest record directly on the <a href="https://solardcrportal.nise.res.in/Summary/index" target="_blank" rel="noreferrer">NISE DCR Verification Portal ↗</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <span class="brand-mark small" aria-hidden="true"><span></span></span>
+      <div><strong>DCR Watch</strong><span>Public solar intelligence · Updated weekly</span></div>
+    </div>
+    <div class="footer-links">
+      <a href="#overview">Back to top ↑</a>
+      <a href="https://github.com/amirahmedimtiaz/dcr-portal-alerts" target="_blank" rel="noreferrer">View project ↗</a>
+    </div>
+  </footer>
+
+  <dialog id="manufacturer-dialog" aria-labelledby="details-title">
+    <div class="dialog-shell">
+      <header class="dialog-header">
+        <div>
+          <span class="company-type-badge" id="details-category">Manufacturer</span>
+          <h2 id="details-title">Manufacturer details</h2>
+          <p id="details-location"></p>
+        </div>
+        <button class="modal-close" type="button" aria-label="Close manufacturer details">×</button>
+      </header>
+      <div class="dialog-body">
+        <section>
+          <p class="dialog-section-label">DCR stock position</p>
+          <div class="detail-metric-grid" id="detail-metrics"></div>
+        </section>
+        <section>
+          <p class="dialog-section-label">Company information</p>
+          <dl class="company-info-grid" id="company-info"></dl>
+        </section>
+        <details class="raw-details">
+          <summary>All portal fields <span>Raw source record</span></summary>
+          <dl class="details-grid" id="details-grid"></dl>
+        </details>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@ It collects:
 - Solar cells manufactured and sold by month from 2022 onward.
 - Solar modules manufactured and sold by month from 2022 onward.
 - All manufacturer categories from the summary page, including cells-only, panels-only, and both cells-and-panels manufacturers.
-- Every manufacturer field returned by the portal. The dashboard shows the common fields in the table and exposes the complete raw record under **View all**. The weekly email includes a complete CSV attachment.
+- Every manufacturer field returned by the portal. The dashboard shows the common fields in the table and exposes the complete raw record under **View profile**. The weekly email includes a complete CSV attachment.
 
 ## Setup
 
@@ -55,7 +55,7 @@ python app.py
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000). This is only a local preview; the deployed dashboard is static and does not require Flask to be running.
 
-In the manufacturer table, click **Cell capacity / DCR (MW)** or **Module capacity / DCR (MW)** to sort. Click again to reverse ascending/descending order. The full portal record remains available under **View all**.
+In the manufacturer table, click **DCR cell stock (MW)** or **DCR module stock (MW)** to sort. Click again to reverse ascending/descending order. These portal fields represent stock with the manufacturer, not nameplate factory capacity. Search, category and state filters, pagination, filtered CSV export, and the full portal record are available in the dashboard.
 
 ## GitHub Pages deployment and automatic schedule
 
@@ -66,16 +66,6 @@ The repository contains `.github/workflows/update-and-deploy.yml`. It runs at `0
 - commits the updated `data/portal.db` state; and
 - publishes the static dashboard.
 
-This workspace does not have a GitHub remote yet. Create an empty repository, then push this directory:
-
-```bash
-git init -b main
-git add .
-git commit -m "Add Solar DCR monitoring dashboard"
-git remote add origin https://github.com/<your-account>/<your-repository>.git
-git push -u origin main
-```
-
 In the repository’s **Settings → Secrets and variables → Actions**, add these repository secrets:
 
 ```text
@@ -84,11 +74,9 @@ EMAIL_PASSWORD
 EMAIL_RECEIVER
 ```
 
-Use the Gmail App Password for `EMAIL_PASSWORD`. Do not commit `.env` or copy its contents into the repository. Under **Settings → Pages**, choose **GitHub Actions** as the publishing source, then run **Update and deploy Solar DCR dashboard** manually once from the Actions tab. The live URL will be:
+Use the Gmail App Password for `EMAIL_PASSWORD`. Do not commit `.env` or copy its contents into the repository. Under **Settings → Pages**, choose **GitHub Actions** as the publishing source, then run **Update and deploy Solar DCR dashboard** manually from the Actions tab when an immediate refresh is needed.
 
-```text
-https://<your-account>.github.io/<your-repository>/
-```
+The live dashboard is [https://amirahmedimtiaz.github.io/dcr-portal-alerts/](https://amirahmedimtiaz.github.io/dcr-portal-alerts/).
 
 Bookmark that URL; it will work without the local Flask server. GitHub’s custom Pages workflow uses the Pages artifact and deployment actions included here. 
 
