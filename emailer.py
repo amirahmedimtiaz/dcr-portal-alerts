@@ -6,6 +6,7 @@ import csv
 import html
 import io
 import json
+import math
 import os
 import smtplib
 from email.message import EmailMessage
@@ -52,6 +53,54 @@ def _manufacturer_row(item: dict[str, Any]) -> str:
     )
 
 
+def _stock_value(item: dict[str, Any], field: str) -> float:
+    value = item.get("raw", {}).get(field)
+    try:
+        parsed = (
+            float(value.replace(",", ""))
+            if isinstance(value, str)
+            else float(value or 0)
+        )
+    except (TypeError, ValueError):
+        return 0.0
+    return parsed if math.isfinite(parsed) else 0.0
+
+
+def _top_stock_holders(
+    manufacturers: Iterable[dict[str, Any]],
+    field: str,
+    limit: int = 10,
+) -> list[tuple[dict[str, Any], float]]:
+    ranked = []
+    for item in manufacturers:
+        stock = _stock_value(item, field)
+        if stock > 0:
+            ranked.append((item, stock))
+    ranked.sort(key=lambda entry: (-entry[1], _manufacturer_name(entry[0]).casefold()))
+    return ranked[:limit]
+
+
+def _stock_ranking_rows(
+    manufacturers: Iterable[dict[str, Any]], field: str
+) -> str:
+    ranked = _top_stock_holders(manufacturers, field)
+    if not ranked:
+        return '<tr><td colspan="4">No positive manufacturer-held stock was reported.</td></tr>'
+
+    rows = []
+    for rank, (item, stock) in enumerate(ranked, start=1):
+        raw = item.get("raw", {})
+        rows.append(
+            "<tr>"
+            f'<td class="numeric">{rank}</td>'
+            f"<td>{_escape(_manufacturer_name(item))}</td>"
+            f"<td>{_escape(item.get('state') or raw.get('State'))}</td>"
+            f'<td class="numeric"><strong>{_number(stock)}</strong></td>'
+            "</tr>"
+        )
+    return "".join(rows)
+
+
 def build_email_html(
     *,
     observed_at: str,
@@ -61,6 +110,10 @@ def build_email_html(
     dashboard_url: str,
     is_initial: bool = False,
 ) -> str:
+    manufacturers = list(current_manufacturers.values())
+    cell_stock_rows = _stock_ranking_rows(manufacturers, "CellDCR")
+    module_stock_rows = _stock_ranking_rows(manufacturers, "ModuleDCR")
+
     metric_rows = []
     for metric in metrics:
         metric_rows.append(
@@ -100,6 +153,24 @@ def build_email_html(
     <p class="note">Growth is calculated against the previous weekly observation. If a new
     month became the latest published month, the comparison is labelled accordingly.</p>
 
+    <h2>Manufacturer-held DCR stock leaders</h2>
+    <p class="note">Ranked using the portal's current <strong>Stock With Manufacturer (MW)</strong>
+    fields. These figures are reported inventory, not nameplate manufacturing capacity.</p>
+
+    <h3>Top 10 solar cell stock holders</h3>
+    <table id="cell-stock-ranking">
+      <thead><tr><th class="numeric">Rank</th><th>Manufacturer</th><th>State</th>
+      <th class="numeric">Stock held (MW)</th></tr></thead>
+      <tbody>{cell_stock_rows}</tbody>
+    </table>
+
+    <h3>Top 10 solar module stock holders</h3>
+    <table id="module-stock-ranking">
+      <thead><tr><th class="numeric">Rank</th><th>Manufacturer</th><th>State</th>
+      <th class="numeric">Stock held (MW)</th></tr></thead>
+      <tbody>{module_stock_rows}</tbody>
+    </table>
+
     <h2>Manufacturer list</h2>
     <p>Current manufacturers: <strong>{diff.get('counts', {}).get('current', len(current_manufacturers))}</strong>.
     Added: <strong>{diff.get('counts', {}).get('added', 0)}</strong> ·
@@ -130,6 +201,7 @@ h3 {{ margin-top: 20px; color: #344054; }}
 table {{ border-collapse: collapse; width: 100%; margin: 10px 0 14px; font-size: 13px; }}
 th, td {{ border: 1px solid #d0d5dd; padding: 7px 8px; text-align: left; vertical-align: top; }}
 th {{ background: #eef7fa; }} .note {{ color: #667085; font-size: 12px; }}
+.numeric {{ text-align: right; white-space: nowrap; }}
 a {{ color: #176b87; }}
 </style></head><body>
 <h1>Solar DCR Portal weekly update</h1>
@@ -190,4 +262,3 @@ def send_gmail(
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=45) as smtp:
         smtp.login(sender, password)
         smtp.send_message(message)
-

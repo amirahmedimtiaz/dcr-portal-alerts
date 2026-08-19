@@ -8,7 +8,7 @@ It collects:
 - Solar modules manufactured and sold by month from 2022 onward.
 - Current DCR solar-cell and module stock held with manufacturers, including previous-snapshot changes and state/company leaders.
 - All manufacturer categories from the summary page, including cells-only, panels-only, and both cells-and-panels manufacturers.
-- Every manufacturer field returned by the portal. The dashboard shows the common fields in the table and exposes the complete raw record under **View profile**. The weekly email includes a complete CSV attachment.
+- Every manufacturer field returned by the portal. The dashboard shows the common fields in the table and exposes the complete raw record under **View profile**. The weekly email includes separate top-10 cell-stock and module-stock manufacturer rankings plus a complete CSV attachment.
 
 ## Setup
 
@@ -87,4 +87,5 @@ The portal returns all twelve months for a selected year, with future/unpublishe
 
 - If the latest month is unchanged, the email reports a like-for-like week-on-week MW change and growth rate.
 - If a new month becomes the latest published month, the email labels the comparison as **Latest month changed** and shows the previous latest month for context.
+- The email ranks the top 10 manufacturers separately by current solar-cell and solar-module stock held, using the portal's **Stock With Manufacturer (MW)** fields.
 - The manufacturer list is compared by company ID. Added, removed, and changed records are reported, and the complete current register is attached as CSV.
