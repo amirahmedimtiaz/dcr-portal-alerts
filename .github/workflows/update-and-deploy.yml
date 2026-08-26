@@ -2,8 +2,16 @@ name: Update and deploy Solar DCR dashboard
 
 on:
   workflow_dispatch:
+    inputs:
+      send_email:
+        description: Send the weekly Gmail digest during this manual run
+        required: false
+        default: false
+        type: boolean
   schedule:
-    # 00:00 UTC Saturday = 09:00 JST Saturday.
+    # Sunday through Friday: refresh and publish data without sending email.
+    - cron: "0 0 * * 0-5"
+    # Saturday 00:00 UTC = 09:00 JST: refresh, publish, and send the weekly email.
     - cron: "0 0 * * 6"
 
 permissions:
@@ -41,7 +49,18 @@ jobs:
         run: python -m pip install -r requirements.txt
 
       - name: Scrape portal and send Gmail digest
-        run: python run.py
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ "${{ github.event.schedule }}" = "0 0 * * 6" ]; then
+              python run.py
+            else
+              python run.py --no-email
+            fi
+          elif [ "${{ inputs.send_email }}" = "true" ]; then
+            python run.py
+          else
+            python run.py --no-email
+          fi
 
       - name: Build static dashboard
         run: python site_builder.py
@@ -80,4 +99,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-

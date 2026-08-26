@@ -6,6 +6,7 @@ from pathlib import Path
 from analytics import manufacturer_diff, metric_comparisons, stock_position
 from database import Database
 from portal import parse_devexpress_data
+from site_builder import build_site
 
 
 class CoreTests(unittest.TestCase):
@@ -110,6 +111,36 @@ class CoreTests(unittest.TestCase):
             self.assertEqual(stock_metrics["cell_held"]["delta"], 6)
             self.assertEqual(stock_metrics["module_held"]["current"], 5)
             self.assertEqual(stock["top_holders"]["cell_held"][0]["agency_name"], "Beta")
+
+    def test_static_site_embeds_snapshot_version_for_cache_busting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            db = Database(root / "test.db")
+            run_id = db.start_run("2026-08-27T09:00:00+09:00", False, True)
+            db.save_scrape(
+                run_id,
+                observed_at="2026-08-27T09:00:00+09:00",
+                metric_values={
+                    "cell_manufactured": [
+                        {"year": 2026, "month": 8, "value": 1, "source_endpoint": "x"}
+                    ]
+                },
+                manufacturers=[],
+            )
+            db.save_latest_metrics(run_id, db.latest_nonzero_metrics())
+            db.finish_run(
+                run_id,
+                finished_at="2026-08-27T09:00:01+09:00",
+                status="success",
+            )
+
+            output = build_site(output_dir=root / "site", database_path=root / "test.db")
+            index = (output / "index.html").read_text(encoding="utf-8")
+            app = (output / "app.js").read_text(encoding="utf-8")
+
+            self.assertIn('window.DCR_DATA_VERSION = "1"', index)
+            self.assertIn("?v=", app)
+            self.assertIn("DCR_DATA_VERSION", app)
 
 
 if __name__ == "__main__":

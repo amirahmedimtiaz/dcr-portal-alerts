@@ -1,6 +1,6 @@
 # Solar DCR Portal alerts
 
-This project keeps a history of the public NISE Solar DCR Portal summary data, publishes a fast static dashboard on GitHub Pages, and sends a Gmail digest every Saturday at 09:00 JST through GitHub Actions.
+This project keeps a history of the public NISE Solar DCR Portal summary data, publishes a fast static dashboard on GitHub Pages every day at 09:00 JST, and sends a Gmail digest every Saturday at 09:00 JST through GitHub Actions.
 
 It collects:
 
@@ -56,14 +56,14 @@ python app.py
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000). This is only a local preview; the deployed dashboard is static and does not require Flask to be running.
 
-In the manufacturer table, click **DCR cell stock (MW)** or **DCR module stock (MW)** to sort. Click again to reverse ascending/descending order. These portal fields represent stock with the manufacturer, not nameplate factory capacity. Search, category and state filters, pagination, filtered CSV export, and the full portal record are available in the dashboard.
+In the manufacturer table, click **DCR cell stock (MW)** or **DCR module stock (MW)** to sort. Click again to reverse ascending/descending order. These portal fields represent stock with the manufacturer, not nameplate factory capacity. Search, category and state filters, pagination, filtered CSV export, and the full portal record are available in the dashboard. **Reload published data** re-requests the latest deployed snapshot with cache-busting; the portal scrape itself runs in GitHub Actions.
 
 ## GitHub Pages deployment and automatic schedule
 
-The repository contains `.github/workflows/update-and-deploy.yml`. It runs at `00:00 UTC` every Saturday, which is `09:00 JST`, and also supports manual runs from the Actions tab. Each run:
+The repository contains `.github/workflows/update-and-deploy.yml`. It refreshes and publishes data at `00:00 UTC` every day, which is `09:00 JST`, and also supports manual runs from the Actions tab. The Saturday run also sends the Gmail digest; manual runs send email only when the `send_email` input is enabled. Each run:
 
 - scrapes the current year and refreshes the manufacturer register;
-- sends the Gmail digest;
+- sends the Saturday Gmail digest;
 - commits the updated `data/portal.db` state; and
 - publishes the static dashboard.
 

@@ -19,6 +19,13 @@ def build_site(output_dir: str | Path = "site", database_path: str | Path | None
 
     database = Database(database_path or os.getenv("DATABASE_PATH", "portal.db"))
     payloads = all_payloads(database)
+    latest_run = payloads["summary"].get("latest_run") or {}
+    data_version = str(
+        latest_run.get("id")
+        or latest_run.get("finished_at")
+        or latest_run.get("started_at")
+        or "published"
+    )
     for name, payload in payloads.items():
         (data_dir / f"{name}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
@@ -30,7 +37,14 @@ def build_site(output_dir: str | Path = "site", database_path: str | Path | None
         template
         .replace("{{ url_for('static', filename='styles.css') }}", "styles.css")
         .replace("{{ url_for('static', filename='app.js') }}", "app.js")
-        .replace("<script src=\"app.js\"></script>", "<script>window.DCR_STATIC_DATA = true;</script>\n  <script src=\"app.js\"></script>")
+        .replace(
+            "<script src=\"app.js\"></script>",
+            (
+                f"<script>window.DCR_STATIC_DATA = true; "
+                f"window.DCR_DATA_VERSION = {json.dumps(data_version)};</script>\n"
+                "  <script src=\"app.js\"></script>"
+            ),
+        )
     )
     (output / "index.html").write_text(static_index, encoding="utf-8")
     shutil.copyfile("static/app.js", output / "app.js")
@@ -42,4 +56,3 @@ def build_site(output_dir: str | Path = "site", database_path: str | Path | None
 if __name__ == "__main__":
     build_site()
     print("Static site written to site/")
-

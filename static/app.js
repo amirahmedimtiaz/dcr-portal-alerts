@@ -748,9 +748,11 @@ function initializeTheme() {
   applyTheme(saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 }
 
-async function fetchJson(path) {
+async function fetchJson(path, requestVersion = Date.now()) {
   const staticMode = window.DCR_STATIC_DATA === true;
-  const target = staticMode ? `data/${STATIC_ENDPOINTS[path]}` : path;
+  const target = staticMode
+    ? `data/${STATIC_ENDPOINTS[path]}?v=${encodeURIComponent(`${window.DCR_DATA_VERSION || "published"}-${requestVersion}`)}`
+    : path;
   const response = await fetch(target, { cache: "no-store" });
   if (!response.ok) throw new Error(`${path} returned ${response.status}`);
   return response.json();
@@ -763,10 +765,11 @@ async function loadDashboard() {
   status.classList.remove("error");
   refresh.disabled = true;
   try {
+    const requestVersion = Date.now();
     const [summary, metricData, manufacturerData] = await Promise.all([
-      fetchJson("/api/summary"),
-      fetchJson("/api/metrics"),
-      fetchJson("/api/manufacturers"),
+      fetchJson("/api/summary", requestVersion),
+      fetchJson("/api/metrics", requestVersion),
+      fetchJson("/api/manufacturers", requestVersion),
     ]);
     state.summary = summary.ready ? summary : null;
     state.metricSeries = metricData.series || [];
@@ -775,7 +778,10 @@ async function loadDashboard() {
     state.manufacturerById = new Map(state.manufacturers.map((item) => [item.agency_id, item]));
     if (!state.visibleMetrics.size) state.metricSeries.forEach((series) => state.visibleMetrics.add(series.key));
     const runDate = summary.latest_run?.finished_at || summary.latest_run?.started_at;
-    status.innerHTML = `<span class="status-dot"></span>${runDate ? `Updated ${escapeHtml(formatTimestamp(runDate))}` : "Awaiting first snapshot"}`;
+    const checkedAt = formatTimestamp(new Date().toISOString());
+    status.innerHTML = `<span class="status-dot"></span>${runDate
+      ? `Published ${escapeHtml(formatTimestamp(runDate))} JST · checked ${escapeHtml(checkedAt)} JST`
+      : "Awaiting first snapshot"}`;
     renderSnapshot();
     renderKpis();
     renderStockPosition();

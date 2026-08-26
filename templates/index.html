@@ -36,7 +36,7 @@
   <main id="main-content" class="shell">
     <section class="hero" id="overview">
       <div class="hero-copy">
-        <div class="live-label"><span class="pulse-dot"></span> Weekly public-data monitor</div>
+        <div class="live-label"><span class="pulse-dot"></span> Daily public-data monitor</div>
         <h1>Domestic solar,<br><span>clearly tracked.</span></h1>
         <p class="hero-intro">Follow India’s DCR solar-cell and module manufacturing, sales, stock, and registered manufacturers in one focused view.</p>
         <div class="hero-actions">
@@ -68,10 +68,10 @@
           </div>
           <div class="snapshot-stat accent">
             <span class="snapshot-value">Sat</span>
-            <span class="snapshot-label">09:00 JST refresh</span>
+            <span class="snapshot-label">Daily · 09:00 JST refresh</span>
           </div>
         </div>
-        <button class="refresh-link" id="refresh-button" type="button"><span aria-hidden="true">↻</span> Reload published data</button>
+        <button class="refresh-link" id="refresh-button" type="button" title="Check the newest published snapshot"><span aria-hidden="true">↻</span> Reload published data</button>
       </aside>
     </section>
 
@@ -81,7 +81,7 @@
           <p class="section-kicker">Latest non-zero month</p>
           <h2 id="latest-heading">Production and sales pulse</h2>
         </div>
-        <p class="section-note">Changes compare the same latest month between weekly portal snapshots.</p>
+        <p class="section-note">Changes compare the same latest month between consecutive portal snapshots.</p>
       </div>
       <div class="kpi-grid" id="kpi-grid" aria-live="polite">
         <div class="loading-card">Loading the latest portal snapshot…</div>
@@ -303,8 +303,8 @@
           <p>Aggregate rated power of the tracked cells or modules in megawatts. It is not a count of physical pieces.</p>
         </details>
         <details>
-          <summary><span>Weekly change</span><span aria-hidden="true">+</span></summary>
-          <p>The difference between consecutive weekly snapshots for a metric’s latest non-zero month. Growth rate is that difference divided by the earlier snapshot value.</p>
+          <summary><span>Snapshot change</span><span aria-hidden="true">+</span></summary>
+          <p>The difference between consecutive published snapshots for a metric’s latest non-zero month. Growth rate is that difference divided by the earlier snapshot value.</p>
         </details>
         <details>
           <summary><span>Manufacturer categories</span><span aria-hidden="true">+</span></summary>
@@ -321,7 +321,7 @@
   <footer class="site-footer">
     <div class="footer-brand">
       <span class="brand-mark small" aria-hidden="true"><span></span></span>
-      <div><strong>DCR Watch</strong><span>Public solar intelligence · Updated weekly</span></div>
+      <div><strong>DCR Watch</strong><span>Public solar intelligence · Updated daily</span></div>
     </div>
     <div class="footer-links">
       <a href="#overview">Back to top ↑</a>
