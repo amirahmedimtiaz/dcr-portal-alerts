@@ -779,9 +779,9 @@ async function loadDashboard() {
     if (!state.visibleMetrics.size) state.metricSeries.forEach((series) => state.visibleMetrics.add(series.key));
     const runDate = summary.latest_run?.finished_at || summary.latest_run?.started_at;
     const checkedAt = formatTimestamp(new Date().toISOString());
-    status.innerHTML = `<span class="status-dot"></span>${runDate
-      ? `Published ${escapeHtml(formatTimestamp(runDate))} JST · checked ${escapeHtml(checkedAt)} JST`
-      : "Awaiting first snapshot"}`;
+    status.innerHTML = `<span class="status-dot"></span><span class="status-copy">${runDate
+      ? `<strong>Published ${escapeHtml(formatTimestamp(runDate))} JST</strong><small>Checked ${escapeHtml(checkedAt)} JST</small>`
+      : "<strong>Awaiting first snapshot</strong>"}</span>`;
     renderSnapshot();
     renderKpis();
     renderStockPosition();
@@ -793,7 +793,7 @@ async function loadDashboard() {
     populateManufacturerFilters();
     renderManufacturers();
   } catch (error) {
-    status.innerHTML = '<span class="status-dot"></span>Data unavailable';
+    status.innerHTML = '<span class="status-dot"></span><span class="status-copy"><strong>Data unavailable</strong><small>Try again shortly</small></span>';
     status.classList.add("error");
     $("#kpi-grid").innerHTML = `<div class="loading-card">The published data could not be loaded. ${escapeHtml(error.message)}</div>`;
     $("#stock-cards").innerHTML = '<div class="loading-card">The stock snapshot could not be loaded.</div>';

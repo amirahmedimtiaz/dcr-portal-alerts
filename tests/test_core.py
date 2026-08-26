@@ -139,8 +139,11 @@ class CoreTests(unittest.TestCase):
             app = (output / "app.js").read_text(encoding="utf-8")
 
             self.assertIn('window.DCR_DATA_VERSION = "1"', index)
+            self.assertIn('class="snapshot-value">Daily</span>', index)
+            self.assertNotIn('class="snapshot-value">Sat</span>', index)
             self.assertIn("?v=", app)
             self.assertIn("DCR_DATA_VERSION", app)
+            self.assertIn("status-copy", app)
 
 
 if __name__ == "__main__":
